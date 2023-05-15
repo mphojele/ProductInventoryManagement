@@ -7,6 +7,8 @@
     using DevExtreme.AspNet.Data.ResponseModel;
     using DevExtreme.AspNet.Mvc;
 
+    using FluentValidation;
+
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
 
@@ -14,15 +16,20 @@
 
     using ProductInventoryManagement.Data;
     using ProductInventoryManagement.Models;
+    using ProductInventoryManagement.Validators;
 
     [Route("api/[controller]")]
     public class ProductInventoryWebAPIController : ControllerBase
     {
         private readonly ProductInventoryContext context;
+        private readonly IValidator<Product> validator;
 
-        public ProductInventoryWebAPIController(ProductInventoryContext context)
+        public ProductInventoryWebAPIController(
+            ProductInventoryContext context,
+            IValidator<Product> validator)
         {
             this.context = context;
+            this.validator = validator;
         }
 
         [HttpGet]
@@ -39,6 +46,14 @@
             var model = await this.context.Product.FindAsync(key);
 
             JsonConvert.PopulateObject(values, model);
+
+            var validationResult = this.validator.Validate(model, _ => _.IncludeRuleSets("Put"));
+            if (!validationResult.IsValid)
+            {
+                validationResult.AddToModelState(this.ModelState);
+
+                return this.BadRequest(this.ModelState);
+            }
 
             try
             {
@@ -63,18 +78,38 @@
         public async Task<ActionResult<Product>> PostProduct(string values)
         {
             var model = JsonConvert.DeserializeObject<Product>(values);
+
+            var validationResult = this.validator.Validate(model, _ => _.IncludeRuleSets("Post"));
+            if (!validationResult.IsValid)
+            {
+                validationResult.AddToModelState(this.ModelState);
+
+                return this.BadRequest(this.ModelState);
+            }
+
             this.context.Product.Add(model);
             await this.context.SaveChangesAsync();
 
             return this.CreatedAtAction("GetProduct", new { id = model.ProductID }, model);
         }
 
-        // DELETE: api/ProductInventoryWebAPI
         [HttpDelete]
         public async Task<IActionResult> DeleteProduct(int key)
         {
-            var model = await this.context.Product.FindAsync(key);
-            if (model == null)
+            var model = new Product()
+            {
+                ProductID = key,
+            };
+
+            var validationResult = this.validator.Validate(model, _ => _.IncludeRuleSets("Delete"));
+            if (!validationResult.IsValid)
+            {
+                validationResult.AddToModelState(this.ModelState);
+
+                return this.BadRequest(this.ModelState);
+            }
+
+            if (!this.ProductExists(key))
             {
                 return this.NotFound();
             }

@@ -1,8 +1,13 @@
 ﻿namespace ProductInventoryManagement
 {
+    using FluentValidation;
+
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
+
     using ProductInventoryManagement.Data;
+    using ProductInventoryManagement.Models;
+    using ProductInventoryManagement.Validators;
 
     public static class Program
     {
@@ -16,6 +21,8 @@
             builder.Services
                 .AddControllersWithViews()
                 .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+
+            builder.Services.AddScoped<IValidator<Product>, ProductValidator>();
 
             var app = builder.Build();
 
