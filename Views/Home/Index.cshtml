@@ -2,15 +2,18 @@
 
 <h2>Home</h2>
 
-@(Html.DevExtreme().DataGrid<SampleOrder>()
+@(Html.DevExtreme().DataGrid<Product>()
     .ShowBorders(true)
-    .DataSource(d => d.Mvc().Controller("SampleData").LoadAction("Get").Key("OrderID"))
+    .DataSource(d => d.Mvc().Controller("ProductInventoryWebAPI")
+        .LoadAction("Get")
+        .InsertAction("Post")
+        .UpdateAction("")
+        .Key("ProductID"))
     .Columns(columns => {
-        columns.AddFor(m => m.OrderID);
-        columns.AddFor(m => m.OrderDate);
-        columns.AddFor(m => m.CustomerName);
-        columns.AddFor(m => m.ShipCountry);
-        columns.AddFor(m => m.ShipCity);
+        columns.AddFor(m => m.Name);
+        columns.AddFor(m => m.Description);
+        columns.AddFor(m => m.Price);
+        columns.AddFor(m => m.Quantity);
     })
     .Paging(p => p.PageSize(10))
     .FilterRow(f => f.Visible(true))
@@ -20,7 +23,7 @@
     .RemoteOperations(true)
     .Summary(s => s
         .TotalItems(totalItems => {
-            totalItems.AddFor(m => m.ShipCity).SummaryType(SummaryType.Count);
+            totalItems.AddFor(m => m.Quantity).SummaryType(SummaryType.Count);
         })
         .GroupItems(groupItems => {
             groupItems.Add().SummaryType(SummaryType.Count);
