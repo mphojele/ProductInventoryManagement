@@ -15,6 +15,6 @@ namespace ProductInventoryManagement.Models
 
         public double Price { get; set; }
 
-        public string Quantity { get; set; }
+        public int Quantity { get; set; }
     }
 }

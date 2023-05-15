@@ -16,7 +16,6 @@
     using ProductInventoryManagement.Models;
 
     [Route("api/[controller]")]
-    [ApiController]
     public class ProductInventoryWebAPIController : ControllerBase
     {
         private readonly ProductInventoryContext context;
@@ -26,7 +25,6 @@
             this.context = context;
         }
 
-        // GET: api/ProductInventoryWebAPI
         [HttpGet]
         public async Task<LoadResult> GetProduct(DataSourceLoadOptions loadOptions)
         {
@@ -35,9 +33,7 @@
             return DataSourceLoader.Load(models, loadOptions);
         }
 
-        // PUT: api/ProductInventoryWebAPI/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+        [HttpPut]
         public async Task<IActionResult> PutProduct(int key, string values)
         {
             var model = await this.context.Product.FindAsync(key);
@@ -63,8 +59,6 @@
             return this.NoContent();
         }
 
-        // POST: api/ProductInventoryWebAPI
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(string values)
         {
@@ -75,8 +69,8 @@
             return this.CreatedAtAction("GetProduct", new { id = model.ProductID }, model);
         }
 
-        // DELETE: api/ProductInventoryWebAPI/5
-        [HttpDelete("{id}")]
+        // DELETE: api/ProductInventoryWebAPI
+        [HttpDelete]
         public async Task<IActionResult> DeleteProduct(int key)
         {
             var model = await this.context.Product.FindAsync(key);
