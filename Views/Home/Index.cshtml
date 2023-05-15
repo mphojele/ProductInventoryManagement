@@ -5,9 +5,10 @@
 @(Html.DevExtreme().DataGrid<Product>()
     .ShowBorders(true)
     .DataSource(d => d.Mvc().Controller("ProductInventoryWebAPI")
-        .LoadAction("Get")
-        .InsertAction("Post")
-        .UpdateAction("")
+        .LoadAction("GetProduct")
+        .InsertAction("PostProduct")
+        .UpdateAction("PutProduct")
+        .DeleteAction("DeleteProduct")
         .Key("ProductID"))
     .Columns(columns => {
         columns.AddFor(m => m.Name);

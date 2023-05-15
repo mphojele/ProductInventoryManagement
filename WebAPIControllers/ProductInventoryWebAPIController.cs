@@ -1,11 +1,17 @@
 ﻿namespace ProductInventoryManagement.WebAPIControllers
 {
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
+    using DevExtreme.AspNet.Data;
+    using DevExtreme.AspNet.Data.ResponseModel;
+    using DevExtreme.AspNet.Mvc;
+
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
+
+    using Newtonsoft.Json;
+
     using ProductInventoryManagement.Data;
     using ProductInventoryManagement.Models;
 
@@ -22,36 +28,21 @@
 
         // GET: api/ProductInventoryWebAPI
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProduct()
+        public async Task<LoadResult> GetProduct(DataSourceLoadOptions loadOptions)
         {
-            return await this.context.Product.ToListAsync();
-        }
+            var models = await this.context.Product.ToListAsync();
 
-        // GET: api/ProductInventoryWebAPI/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
-        {
-            var product = await this.context.Product.FindAsync(id);
-
-            if (product == null)
-            {
-                return this.NotFound();
-            }
-
-            return product;
+            return DataSourceLoader.Load(models, loadOptions);
         }
 
         // PUT: api/ProductInventoryWebAPI/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        public async Task<IActionResult> PutProduct(int key, string values)
         {
-            if (id != product.ProductID)
-            {
-                return this.BadRequest();
-            }
+            var model = await this.context.Product.FindAsync(key);
 
-            this.context.Entry(product).State = EntityState.Modified;
+            JsonConvert.PopulateObject(values, model);
 
             try
             {
@@ -59,7 +50,7 @@
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!this.ProductExists(id))
+                if (!this.ProductExists(key))
                 {
                     return this.NotFound();
                 }
@@ -75,25 +66,26 @@
         // POST: api/ProductInventoryWebAPI
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public async Task<ActionResult<Product>> PostProduct(string values)
         {
-            this.context.Product.Add(product);
+            var model = JsonConvert.DeserializeObject<Product>(values);
+            this.context.Product.Add(model);
             await this.context.SaveChangesAsync();
 
-            return this.CreatedAtAction("GetProduct", new { id = product.ProductID }, product);
+            return this.CreatedAtAction("GetProduct", new { id = model.ProductID }, model);
         }
 
         // DELETE: api/ProductInventoryWebAPI/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduct(int id)
+        public async Task<IActionResult> DeleteProduct(int key)
         {
-            var product = await this.context.Product.FindAsync(id);
-            if (product == null)
+            var model = await this.context.Product.FindAsync(key);
+            if (model == null)
             {
                 return this.NotFound();
             }
 
-            this.context.Product.Remove(product);
+            this.context.Product.Remove(model);
             await this.context.SaveChangesAsync();
 
             return this.NoContent();
